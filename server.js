@@ -3,21 +3,7 @@ const app = express()
 const bodyParser = require('body-parser')
 
 const cors = require('cors')
-
-const mongoose = require('mongoose')
-var Schema = mongoose.Schema;
-mongoose.connect(process.env.MLAB_URI || 'mongodb://cho28:123abc@ds255332.mlab.com:55332/exercise_tracker' )
-
-//creating schema, I think all info for exercises should be inside exercise table
-var exSchema = new Schema({
-  userName: String,
-  exercises: [{
-  description: String,
-  duration: Number,
-  date: {
-    type: Date,
-    default: Date.now}}]
-})
+const dataService = require('./dataService');
 
 app.use(cors())
 
@@ -31,19 +17,13 @@ app.get('/', (req, res) => {
 });
 
 //creating a new user
-app.post('/api/exercise/:new_user', (req,res) => {
-  var user = req.params.new_user;
-  var ex = mongoose.model('Exercise', exSchema);
+app.post('/api/exercise/new-user', (req,res) => {
+  dataService.addUser(req.body);
 });
 
 //creating exercise
 app.post('/api/exercise/add', (req,res) => {
-  var userId = req.params.user;
-  var desc = req.params.desc;
-  var time = req.params.duration;
-  var date = req.params.date;
-  
-  ex.find({ user: userId, 
+  dataService.createExercise(req.body);
 });
 
 // Not found middleware
