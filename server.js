@@ -14,6 +14,7 @@ const exerciseSchema = new Schema({
     type: String,
     require: true,
     unique: true},
+  exerciseCount: Number,
   exercise:[{
     description: String,
     duration: Number,
@@ -25,7 +26,7 @@ const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 //adding new user
 app.post('/api/exercise/new-user', (req,res)=>{
-    var e1 = new Exercise({username: req.body.username});
+    var e1 = new Exercise({username: req.body.username, exerciseCount: 0, exercise: []});
     e1.save(function(err,data){
       if (err)
         console.log(err);
@@ -78,25 +79,65 @@ app.post('/api/exercise/add', (req,res)=>{
   })
 })
 
+//finding exercises
 app.get('/api/exercise/log?', (req,res)=>{
   if (!req.query.userId)
     console.log("Missing userId");
   else{
     var user = req.query.userId;
-    if(req.body.from)
-      var from = req.body.from;
-    if(req.body.to)
-      var to = req.body.to;
-    if(req.body.limit)
-      var lim = req.body.limit;
+    var from = req.body.from;
+    var to = req.body.to;
+    var lim = req.body.limit;
     Exercise.find({
-      'username': user,
-      'exercise.date': {$gte: from, $lte: to}
-    }).limit(lim).exec(function (err, data){
+      'username': user
+    }).exec(function (err, data){
       if (err)
-        console.log(err);
+        console.log("There was an issue finding the user");
       else
-        return (data);
+        if(to && from){
+          Exercise.find({
+            'username': user,
+            'exercise.date': {$gte: from, $gte: to}
+          }).exec(function (err, data){
+            if (err)
+              console.log("There was an issue finding the data");
+            else
+              return data;
+          })
+        }
+        else if (to){
+            Exercise.find({
+            'username': user,
+            'exercise.date': {$gte: to}
+          }).exec(function (err, data){
+            if (err)
+              console.log("There was an issue finding the data");
+            else
+              return data;
+          })
+        }
+        else if (from){
+          Exercise.find({
+            'username': user,
+            'exercise.date': {$gte: from}
+          }).exec(function (err, data){
+            if (err)
+              console.log("There was an issue finding the data");
+            else
+              return data;
+          }) 
+       }
+       else{
+         Exercise.find({
+           'username': user,
+           'exercise.date': {$gte: from, $gte: to}
+         }).exec(function (err, data){
+           if (err)
+             console.log("There was an issue finding the data");
+           else
+             return data;
+        }) 
+      }      
     })
   }
 })
@@ -111,7 +152,6 @@ app.use(express.static('public'))
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
-
 
 // Not found middleware
 app.use((req, res, next) => {
