@@ -62,17 +62,20 @@ app.post('/api/exercise/add', (req,res)=>{
       .exec(function(err,data){
       if (err)
         console.log(err);
-      else
+      else{
         console.log(data);
+        res.redirect('/');
+      }
     })
   else
     console.log("No username found");
 });
       /*else{
         if(req.body.description){
-          if(req.body.duration){
+          if(req.body.duration != parseInt(req.body.duration)){
             if(req.body.date){
-              const ex = {description: req.body.description, duration: req.body.duration, date: req.body.date};
+              //converting string to date
+              const ex = {description: req.body.description, duration: req.body.duration, date: new Date(req.body.date)};
               res.json(ex);
               data.exercise.push(ex);
               data.save((err,data)=>{
@@ -97,7 +100,7 @@ app.post('/api/exercise/add', (req,res)=>{
             }
           }
         else{
-          console.log("Missing duration");
+          console.log("Missing/Invalid duration");
       }
     }
     else{
