@@ -17,11 +17,13 @@ const exerciseSchema = new Schema({
   exercise:[{
     description: String,
     duration: Number,
-    date: Date}]
+    date: Date
+  }]
 })
 
 const Exercise = mongoose.model('Exercise', exerciseSchema);
 
+//adding new user
 app.post('/api/exercise/new-user', (req,res)=>{
     var e1 = new Exercise({username: req.body.username});
     e1.save(function(err,data){
@@ -32,6 +34,7 @@ app.post('/api/exercise/new-user', (req,res)=>{
     })
 })
 
+//adding exercise
 app.post('/api/exercise/add', (req,res)=>{
   if (req.body.userId)
     Exercise.find({name: req.body.userId}, (err,data)=>{
@@ -68,12 +71,36 @@ app.post('/api/exercise/add', (req,res)=>{
           console.log("Missing duration");
       }
     }
-      else{
-        console.log("Missing description");
+    else{
+      console.log("Missing description");
     }
    }
   })
 })
+
+app.get('/api/exercise/log?', (req,res)=>{
+  if (!req.query.userId)
+    console.log("Missing userId");
+  else{
+    var user = req.query.userId;
+    if(req.body.from)
+      var from = req.body.from;
+    if(req.body.to)
+      var to = req.body.to;
+    if(req.body.limit)
+      var lim = req.body.limit;
+    Exercise.find({
+      'username': user,
+      'exercise.date': {$gte: from, $lte: to}
+    }).limit(lim).exec(function (err, data){
+      if (err)
+        console.log(err);
+      else
+        return (data);
+    })
+  }
+})
+  
 app.use(cors())
 
 app.use(bodyParser.urlencoded({extended: false}))
