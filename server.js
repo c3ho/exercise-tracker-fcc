@@ -4,6 +4,15 @@ const bodyParser = require('body-parser')
 
 const cors = require('cors')
 
+//using bodyParser for req.body
+app.use(bodyParser.urlencoded({extended: false}))
+app.use(bodyParser.json())
+
+app.use(express.static('public'))
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/views/index.html')
+});
+
 const mongoose = require('mongoose')
 var d = new Date();
 
@@ -26,19 +35,29 @@ const Exercise = mongoose.model('Exercise', exerciseSchema);
 
 //adding new user
 app.post('/api/exercise/new-user', (req,res)=>{
-    var e1 = new Exercise({username: req.body.username, exerciseCount: 0, exercise: []});
-    e1.save(function(err,data){
-      if (err)
-        console.log(err);
-      else
-        return data;
-    })
+  Exercise.find({'username': req.body.username})
+    .exec(function (err,data){
+    if (err)
+      console.log(err);
+    if (data.username != null){
+      res.send("Username already exists!");
+    }
+    else{
+      var e1 = new Exercise({'username': req.body.username, 'exerciseCount': 0, 'exercise': []});
+      e1.save(function(err,data){
+        if (err)
+          console.log("There was an error with creating the user");
+        else
+          res.redirect('/');
+      })
+    }
+  })
 })
 
 //adding exercise
 app.post('/api/exercise/add', (req,res)=>{
-  if (req.body.userId)
-    Exercise.find({name: req.body.userId}, (err,data)=>{
+  if (req.body.username)
+    Exercise.find({name: req.body.username}, (err,data)=>{
       if (err)
         console.log(err);
       else{
