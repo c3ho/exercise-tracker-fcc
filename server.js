@@ -55,16 +55,25 @@ app.post('/api/exercise/new-user', (req,res)=>{
 })
 
 //adding exercise
+//fix required
 app.post('/api/exercise/add', (req,res)=>{
-  if (req.body.username)
-    Exercise.find({name: req.body.username}, (err,data)=>{
+  if (req.body.userId)
+    Exercise.find({username: req.body.userId})
+      .exec(function(err,data){
       if (err)
         console.log(err);
-      else{
+      else
+        console.log(data);
+    })
+  else
+    console.log("No username found");
+});
+      /*else{
         if(req.body.description){
           if(req.body.duration){
             if(req.body.date){
               const ex = {description: req.body.description, duration: req.body.duration, date: req.body.date};
+              res.json(ex);
               data.exercise.push(ex);
               data.save((err,data)=>{
                 if(err)
@@ -96,7 +105,7 @@ app.post('/api/exercise/add', (req,res)=>{
     }
    }
   })
-})
+})*/
 
 //finding exercises
 app.get('/api/exercise/log?', (req,res)=>{
