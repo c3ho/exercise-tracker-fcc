@@ -3,8 +3,77 @@ const app = express()
 const bodyParser = require('body-parser')
 
 const cors = require('cors')
-const dataService = require('./dataService');
 
+const mongoose = require('mongoose')
+var d = new Date();
+
+mongoose.connect(process.env.MLAB_URI || 'mongodb://localhost/exercise-track' )
+const Schema = mongoose.Schema;
+const exerciseSchema = new Schema({
+  username: {
+    type: String,
+    require: true,
+    unique: true},
+  exercise:[{
+    description: String,
+    duration: Number,
+    date: Date}]
+})
+
+const Exercise = mongoose.model('Exercise', exerciseSchema);
+
+app.post('/api/exercise/new-user', (req,res)=>{
+    var e1 = new Exercise({username: req.body.username});
+    e1.save(function(err,data){
+      if (err)
+        console.log(err);
+      else
+        return data;
+    })
+})
+
+app.post('/api/exercise/add', (req,res)=>{
+  if (req.body.userId)
+    Exercise.find({name: req.body.userId}, (err,data)=>{
+      if (err)
+        console.log(err);
+      else{
+        if(req.body.description){
+          if(req.body.duration){
+            if(req.body.date){
+              const ex = {description: req.body.description, duration: req.body.duration, date: req.body.date};
+              data.exercise.push(ex);
+              data.save((err,data)=>{
+                if(err)
+                  console.log(err);
+                else
+                  return data;
+              });
+            }
+            else{
+              data.exercise.push({
+                description: req.body.description, 
+                duration: req.body.duration, 
+                date: d.getDate()
+              });
+              data.save((err,data)=>{
+                if(err)
+                  console.log(err);
+                else
+                  return data;
+              });
+            }
+          }
+        else{
+          console.log("Missing duration");
+      }
+    }
+      else{
+        console.log("Missing description");
+    }
+   }
+  })
+})
 app.use(cors())
 
 app.use(bodyParser.urlencoded({extended: false}))
@@ -16,15 +85,6 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/views/index.html')
 });
 
-//creating a new user
-app.post('/api/exercise/new-user', (req,res) => {
-  dataService.addUser(req.body);
-});
-
-//creating exercise
-app.post('/api/exercise/add', (req,res) => {
-  dataService.createExercise(req.body);
-});
 
 // Not found middleware
 app.use((req, res, next) => {
