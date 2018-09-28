@@ -46,9 +46,9 @@ app.post('/api/exercise/new-user', (req,res)=>{
       var e1 = new Exercise({'username': req.body.username, 'exerciseCount': 0, 'exercise': []});
       e1.save(function(err,data){
         if (err)
-          console.log("There was an error with creating the user");
+          res.send("There was an error with creating the user");
         else
-          res.redirect('/');
+          res.redirect('/', req.body.username + ' has been created');
       })
     }
   })
@@ -61,54 +61,55 @@ app.post('/api/exercise/add', (req,res)=>{
     Exercise.find({username: req.body.userId})
       .exec(function(err,data){
       if (err)
-        console.log(err);
+        res.send(err);
       else{
-        console.log(data);
-        res.redirect('/');
+        if(data == "")
+          res.send("There was no user found with entered username");
+        else{
+          if(req.body.description){
+            if(req.body.duration != parseInt(req.body.duration)){
+              if(req.body.date){
+                const ex = {description: req.body.description, duration: req.body.duration, date: new Date(req.body.date)};
+                res.json(ex);
+                data.exercise.push(ex);
+                data.save((err, data)=>{
+                  if (err)
+                    res.send(err);
+                  else{
+                    res.send(data);
+                    res.redirect('/', 'Exercise successfully added');
+                  }
+                })
+              }
+              else{
+                const ex = {description: req.body.description, duration: req.body.duration, date: d.getDate()};
+                res.json(ex);
+                data.exercise.push(ex);
+                data.save((err,data)=>{
+                  if(err)
+                    res.send(err);
+                  else{
+                    res.send(data);
+                    res.redirect('/', 'Exercise successfully added');
+                  }
+                });
+              }
+            }
+            //duration
+            else{
+              res.send('Missing duration');
+            }
+          }
+          //description
+          else{
+            res.send('Missing exercise description');
+          }
+        }
       }
     })
   else
-    console.log("No username found");
+    res.send("Username field is empty, please input a username!");
 });
-      /*else{
-        if(req.body.description){
-          if(req.body.duration != parseInt(req.body.duration)){
-            if(req.body.date){
-              //converting string to date
-              const ex = {description: req.body.description, duration: req.body.duration, date: new Date(req.body.date)};
-              res.json(ex);
-              data.exercise.push(ex);
-              data.save((err,data)=>{
-                if(err)
-                  console.log(err);
-                else
-                  return data;
-              });
-            }
-            else{
-              data.exercise.push({
-                description: req.body.description, 
-                duration: req.body.duration, 
-                date: d.getDate()
-              });
-              data.save((err,data)=>{
-                if(err)
-                  console.log(err);
-                else
-                  return data;
-              });
-            }
-          }
-        else{
-          console.log("Missing/Invalid duration");
-      }
-    }
-    else{
-      console.log("Missing description");
-    }
-   }
-  })
-})*/
 
 //finding exercises
 app.get('/api/exercise/log?', (req,res)=>{
@@ -142,7 +143,7 @@ app.get('/api/exercise/log?', (req,res)=>{
             'exercise.date': {$gte: to}
           }).exec(function (err, data){
             if (err)
-              console.log("There was an issue finding the data");
+              console.log("There was an issue finding the data using the date provided");
             else
               return data;
           })
@@ -153,7 +154,7 @@ app.get('/api/exercise/log?', (req,res)=>{
             'exercise.date': {$gte: from}
           }).exec(function (err, data){
             if (err)
-              console.log("There was an issue finding the data");
+              console.log("There was an issue finding the data using the date provided");
             else
               return data;
           }) 
@@ -164,7 +165,7 @@ app.get('/api/exercise/log?', (req,res)=>{
            'exercise.date': {$gte: from, $gte: to}
          }).exec(function (err, data){
            if (err)
-             console.log("There was an issue finding the data");
+             res.send("There was an issue finding the data using the date provided");
            else
              return data;
         }) 
